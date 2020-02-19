@@ -8,5 +8,5 @@ TODO :
 - [x] add sys error functions and check return values for operation completion status
 - [ ] fork -> exec to default editor
 - [x] fix new line issue while printing date to file
-- [ ] getting uname of node for author value
+- [x] getting uname of node for author value
 - [ ] add support for different files
