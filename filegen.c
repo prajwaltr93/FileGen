@@ -1,6 +1,6 @@
 //filename:filegen.c
 //author : Prajwal T R
-//data last modified : 19/01/2020
+//data last modified : 11/02/2020
 //comments : generate files with header documentation
 
 #include<stdio.h>
@@ -25,7 +25,7 @@ struct
 {
         char *ext;
         char *cmnt;
-} comments[] = 
+} comments[] =
 {
         {"py","#"},
         {"c","//"},
@@ -36,8 +36,8 @@ const char *argp_program_version = "filegen 1.0";
 const char *argp_program_bug_version = "github/prajwaltr93/FileGen/";
 static char doc[] = "file header generation command";
 static char args_doc[] = "filename";
-//key short-options flags docs 
-static struct argp_option options[] = 
+//key short-options flags docs
+static struct argp_option options[] =
 {
 { "silent",'s',0,0,"Don't open default editor Only file generation with header information"},
 { "comment",'c',"COM",0,"add comment section of file header"},
@@ -55,7 +55,7 @@ struct arguments
 static error_t parse_opt (int key,char *arg,struct argp_state *state)
 {
     struct arguments *arguments = state->input;
-    
+
     switch(key)
     {
         case 's':
@@ -64,13 +64,13 @@ static error_t parse_opt (int key,char *arg,struct argp_state *state)
         case 'c':
             arguments->comment = arg;
             break;
-        case 'a':   
+        case 'a':
             arguments->author = arg;
             break;
         case ARGP_KEY_ARG:
             if(state->arg_num >= 1)
             {
-                    argp_usage(state); //too many arguments 
+                    argp_usage(state); //too many arguments
             }
             arguments->argv[state->arg_num] = arg;
             break;
@@ -89,15 +89,15 @@ static error_t parse_opt (int key,char *arg,struct argp_state *state)
 
 //argp parser
 static struct argp argp = {options,parse_opt,args_doc,doc};
-
-//values to write to files
-char *prop[] = {"filename : ","author : ","date last modified : ","comments : "};
-//rows properties to write to files
-char *values[PROP_SIZE];
 //file gen program
 int main(int argc,char **argv)
 {
-    struct arguments arguments; //struct for argument parsing 
+    // values to write to files
+    char *prop[] = {"filename : ","author : ","date last modified : ","comments : "};
+    //rows properties to write to files
+    char *values[PROP_SIZE];
+    //struct for argument parsing
+    struct arguments arguments;
     //intialise struct values with defaults
     arguments.silent = 0;
     arguments.comment = " ";
@@ -110,7 +110,7 @@ int main(int argc,char **argv)
     time(&rawtime); //populate rawtime
     info = localtime(&rawtime); //get all date attributes by passing seconds epoch
     char *filename,*ext,*comment,*date,*comments;
-	char author[100]; //replace constant size with sys defined max length
+	  char author[100]; //replace constant size with sys defined max length
     void *temp;
     //file descriptor
     FILE *fd;
@@ -119,44 +119,42 @@ int main(int argc,char **argv)
     //write to file
     filename = arguments.argv[0];
     temp = getextension(filename);
-    ext = temp ? (char *)temp : " ";    
+    ext = temp ? (char *)temp : " ";
     temp = getcomment(ext);
     comment = temp ? (char *)temp : "//";
-    strcpy(author,arguments.author);
-    comments = arguments.comment;
-    //get uname of node if author value not specified
-    if(sizeof(author)==0)
+    strcpy(author,arguments.author); //get author name from command line arguments
+    comments = arguments.comment; //get comments about file from arguments
+    //get uname of node if author value not specified todo : get username instead of node name
+    if(strlen(author)==0)
    	{
         if(gethostname(author,100)<0)
         {
-                printf("hostname not found\n");
+                printf("hostname not found\n"); //replace : error hangling functions
         }
     }
     //get date of creating file
     date = asctime(info); //get date string
-	//date[sizeof(date)-1] = '\0'; //remove newline at end : todo : returned is strut tm , alternate 
+	  date[strlen(date)-1] = '\0'; //remove newline at end
     //initiate value array todo: rewrite logic
     *(values) = filename;
     *(values+1) = author;
     *(values+2) = date;
-    *(values+3) = comments; //todo : replace logic 
-    
+    *(values+3) = comments;
     //open file and write values
-    fd = fopen(filename,"w"); //todo : check for existing file with name specified     
-   	
+    fd = fopen(filename,"w"); //todo : check for existing file with name specified
     for(int i=0;i<PROP_SIZE;++i)
     {
 			writeline(fd,comment,prop[i],values[i]);
     }
-    //write(fd,"test",sizeof("test")); 
+    //write(fd,"test",sizeof("test"));
     fclose(fd);
-    //todo : fork and execute editor specified default : vi 
+    //todo : fork and execute editor specified default : vi
     return 0;
 }
 //get file extension from filename specified ex : .py
 void *getextension(char *filename)
 {
-    int limit = strlen(filename);  
+    int limit = strlen(filename);
     static char ext[MAXEXTSIZE];
     int i,k;
     for(i=0;i<limit;++i)
@@ -181,11 +179,11 @@ void *getextension(char *filename)
     }
 }
 void *getcomment(char *ext)
-{   
+{
     int i;
     //perform linear search replace with hashtable
     for(i=0;i<STRUCT_ELE;++i)
-    {   
+    {
             if(strcmp(ext,comments[i].ext) == 0)
             {
                     return comments[i].cmnt;
