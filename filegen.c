@@ -13,16 +13,8 @@
 #include<fcntl.h>
 #include<utmpx.h>
 #include<paths.h>
+#include "filegen.h"
 
-//constants
-#define MAXEXTSIZE 7 //exetension for file max length
-#define STRUCT_ELE sizeof(comments)/sizeof(comments[0])
-#define PROP_SIZE  sizeof(prop)/sizeof(prop[0])
-#define MAXLINELEN 400
-//function prototypes for filegen.c
-void *getextension(char *filename);
-void *getcomment(char *extension);
-void writeline(int fd_open,char *comment,char *prop,char *value,char *filename);
 //comment struct for each extension
 struct
 {
@@ -195,7 +187,7 @@ void *getextension(char *filename)
 void *getcomment(char *ext)
 {
     int i;
-    //perform linear search replace with hashtable
+    //perform linear search todo : replace with hashtable
     for(i=0;i<STRUCT_ELE;++i)
     {
             if(strcmp(ext,comments[i].ext) == 0)
