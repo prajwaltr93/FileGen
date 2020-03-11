@@ -14,7 +14,7 @@
 #include<utmpx.h>
 #include<paths.h>
 #include "filegen.h"
-
+#include<sys/wait.h>
 //comment struct for each extension
 struct
 {
@@ -99,6 +99,7 @@ int main(int argc,char **argv)
     time(&rawtime); //populate rawtime
     info = localtime(&rawtime); //get all date attributes by passing seconds epoch
     char *filename,*ext,*comment,*date,*comments;
+    int silent;
     char author[100]; //replace constant size with sys defined max length
     void *temp;
     //file descriptor for file to open
@@ -108,6 +109,13 @@ int main(int argc,char **argv)
     //utmp struct to refer while reading from utmp file
     struct utmpx utmp_data;
     //intialise struct values with defaults
+    //pid of editor
+    int epid;
+    //options arguments to editor
+    char *edoptions = " "; //todo : obtain options
+    //return status of child
+    int status;
+
     arguments.silent = 0;
     arguments.comment = " ";
     arguments.author = "";
@@ -120,7 +128,8 @@ int main(int argc,char **argv)
     temp = getcomment(ext);
     comment = temp ? (char *)temp : "//";
     strcpy(author,arguments.author); //get author name from command line arguments
-    comments = arguments.comment; //get comments about file from arguments
+    comments = arguments.comment; //get comments about file from argument
+    silent = arguments.silent; //get flag to not open editor
     //get uname of node if author value not specified
     if(strlen(author) == 0) //author not specified in command line argument
     {
@@ -154,7 +163,32 @@ int main(int argc,char **argv)
 			writeline(fd_open,comment,prop[i],values[i],filename);
     }
     close(fd_open);
-    //todo : fork and execute editor specified default : vi
+    //if silent -s not specified
+    if(silent != 1 && silent == 0)
+    {
+    //fork and execute editor specified default : vi
+    if((epid = fork()) < 0)//attempt to create child process
+    {
+      perror("fork");
+    }
+    if(epid == 0) //child created
+    {
+      if(execlp("vi",edoptions,filename,CNULL) < 0)
+      {
+        //error opening editor
+        exit(EXIT_FAILURE); //return this to parent process
+      }
+    }
+    //wait and examine child exit status
+    else if (wait(&status) == epid )
+    {
+      //check for possible errors
+      if(WIFSIGNALED(status))
+      {
+        perror("editor");
+      }
+    }
+    } //if silent
     return 0;
 }
 //get file extension from filename specified ex : .py

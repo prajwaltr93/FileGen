@@ -7,6 +7,7 @@
 #define MAXEXTSIZE 7 //exetension for file max length
 #define STRUCT_ELE sizeof(comments)/sizeof(comments[0]) //
 #define PROP_SIZE  sizeof(prop)/sizeof(prop[0])
+#define CNULL (char *)0
 //maximum line length to write to file
 #define MAXLINELEN 400
 //function prototypes for filegen.c
