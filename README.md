@@ -5,7 +5,7 @@ for command usage type :
 $filegen --help
 ```
 
-![filegen --help](./res/help.png)
+![filegen --help](./res/help)
 
 ```
 $./filegen -a "PRAJWAL T R" -c "test file with py ext" temp.py
