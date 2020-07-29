@@ -20,25 +20,26 @@ struct
 {
         char *ext;
         char *cmnt;
-} comments[] =
-{
+} comments[] = {
         {"py","#"},
         {"c","//"},
         {"java","//"}
 };
+
 //messages for struct argp
 const char *argp_program_version = "filegen 1.0";
 const char *argp_program_bug_version = "github/prajwaltr93/FileGen/";
 static char doc[] = "file header generation command";
 static char args_doc[] = "filename";
+
 //key short-options flags docs
-static struct argp_option options[] =
-{
-{ "silent",'s',0,0,"Don't open default editor Only file generation with header information"},
-{ "comment",'c',"COM",0,"add comment section of file header"},
-{ "author",'a',"AUTHR",0,"Specify author name otherthan username specified by operating system"},
-{0},//skip filename argument in help message
+static struct argp_option options[] = {
+  { "silent",'s',0,0,"Don't open default editor Only file generation with header information"},
+  { "comment",'c',"COM",0,"add comment section of file header"},
+  { "author",'a',"AUTHR",0,"Specify author name otherthan username specified by operating system"},
+  {0},//skip filename argument in help message
 };
+
 //store values parsed argp_parse
 struct arguments
 {
@@ -46,6 +47,7 @@ struct arguments
     int silent;
     char *comment,*author;
 };
+
 //argp parser ,parse each key
 static error_t parse_opt (int key,char *arg,struct argp_state *state)
 {
@@ -79,11 +81,11 @@ static error_t parse_opt (int key,char *arg,struct argp_state *state)
             return ARGP_ERR_UNKNOWN;
     }
     return 0; // return 0 to enusre no error has occured : imp
-
 }
 
 //argp parser
 static struct argp argp = {options,parse_opt,args_doc,doc};
+
 //file gen program
 int main(int argc,char **argv)
 {
@@ -108,7 +110,6 @@ int main(int argc,char **argv)
     int fd_utmp;
     //utmp struct to refer while reading from utmp file
     struct utmpx utmp_data;
-    //intialise struct values with defaults
     //pid of editor
     int epid;
     //options arguments to editor
@@ -116,11 +117,14 @@ int main(int argc,char **argv)
     //return status of child
     int status;
 
+    //intialise struct values with defaults
     arguments.silent = 0;
     arguments.comment = " ";
     arguments.author = "";
+
     //parse all arguments and initialise variables
     argp_parse(&argp,argc,argv,0,0,&arguments);
+
     //write to file
     filename = arguments.argv[0];
     temp = getextension(filename);
@@ -130,6 +134,7 @@ int main(int argc,char **argv)
     strcpy(author,arguments.author); //get author name from command line arguments
     comments = arguments.comment; //get comments about file from argument
     silent = arguments.silent; //get flag to not open editor
+
     //get uname of node if author value not specified
     if(strlen(author) == 0) //author not specified in command line argument
     {
@@ -143,6 +148,7 @@ int main(int argc,char **argv)
         }
       }//else no author value is written ex : " "
     }
+
     //get current date
     date = asctime(info); //get date string
     date[strlen(date)-1] = '\0'; //remove newline at end
@@ -151,6 +157,7 @@ int main(int argc,char **argv)
     *(values+1) = author;
     *(values+2) = date;
     *(values+3) = comments;
+
     //open file and write values
     fd_open = open(filename,O_WRONLY | O_CREAT | O_EXCL,0666); //todo : Get file create permission from system
     if(fd_open == -1)
@@ -166,31 +173,32 @@ int main(int argc,char **argv)
     //if silent -s not specified
     if(silent != 1 && silent == 0)
     {
-    //fork and execute editor specified default : vi
-    if((epid = fork()) < 0)//attempt to create child process
-    {
-      perror("fork");
-    }
-    if(epid == 0) //child created
-    {
-      if(execlp("vi",edoptions,filename,CNULL) < 0)
+      //fork and execute editor specified default : vi
+      if((epid = fork()) < 0)//attempt to create child process
       {
-        //error opening editor
-        exit(EXIT_FAILURE); //return this to parent process
+        perror("fork");
       }
-    }
-    //wait and examine child exit status
-    else if (wait(&status) == epid )
-    {
-      //check for possible errors
-      if(WIFSIGNALED(status))
+      if(epid == 0) //child created
       {
-        perror("editor");
+        if(execlp("vi",edoptions,filename,CNULL) < 0)
+        {
+          //error opening editor
+          exit(EXIT_FAILURE); //return this to parent process
+        }
       }
-    }
+      //wait and examine child exit status
+      else if (wait(&status) == epid )
+      {
+        //check for possible errors
+        if(WIFSIGNALED(status))
+        {
+          perror("editor");
+        }
+      }
     } //if silent
     return 0;
 }
+
 //get file extension from filename specified ex : .py
 void *getextension(char *filename)
 {
@@ -205,7 +213,6 @@ void *getextension(char *filename)
             {
                 *(ext+k) = *(filename+i); //get everything after '.'
             }
-
         break;
         }
     }
@@ -233,13 +240,13 @@ void *getcomment(char *ext)
 }
 void writeline(int fd_open,char *comment,char *prop,char *value,char *filename)
 {
-	char wrtstrng[MAXLINELEN];
+  char wrtstrng[MAXLINELEN];
   int res;
 	strcpy(wrtstrng,comment);
-	strcat(wrtstrng,prop);
-	strcat(wrtstrng,value);
+  strcat(wrtstrng,prop);
+  strcat(wrtstrng,value);
   strcat(wrtstrng,"\n");
-	res = write(fd_open,wrtstrng,strlen(wrtstrng)*sizeof(char));
+  res = write(fd_open,wrtstrng,strlen(wrtstrng)*sizeof(char));
   if(res == -1)
   {
     //remove file not required
